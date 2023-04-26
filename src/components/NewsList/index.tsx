@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { wpApi } from "../../services/api";
+import { wpApi, locationApi } from "../../services/api";
 import { formatDistance } from "date-fns";
-
+import * as Location from "expo-location";
 import { utcToZonedTime } from "date-fns-tz";
 
 import { ptBR } from "date-fns/locale";
@@ -26,6 +26,11 @@ export interface INewsListItem {
 }
 
 export default function NewsList() {
+  const [location, setLocation] = useState<Location.LocationObject | null>(
+    null
+  );
+  const [myUf, setMyUf] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [data, setData] = useState<INewsListItem[]>([]);
 
   async function fetchNews() {
@@ -33,7 +38,13 @@ export default function NewsList() {
       if (data.length > 0) {
         return;
       }
-      const response = await wpApi.get("app-news?per_page=10");
+      let filter = "";
+      if (myUf) {
+        console.log(myUf);
+        filter = `&meta_key=estado&meta_value=${myUf}:`;
+      }
+      console.log("filter", filter);
+      const response = await wpApi.get(`app-news?per_page=10${filter}`);
 
       const items: INewsListItem[] = response.data.map((item: any) => {
         return {
@@ -44,6 +55,7 @@ export default function NewsList() {
           estado: [...[], item.acf.estado],
         };
       });
+
       setData(items);
     } catch (ex) {
       // Handle exeception
@@ -53,6 +65,45 @@ export default function NewsList() {
 
   useEffect(() => {
     fetchNews();
+  }, [myUf]);
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
+        fetchNews();
+        return;
+      }
+
+      const location: Location.LocationObject =
+        await Location.getCurrentPositionAsync({});
+      const parsedLocation = await locationApi.get(
+        `reverse?access_key=639b9539b47613d3fbda3633d1b8c3f0&query=${location.coords.latitude},${location.coords.longitude}`
+      );
+      setLocation(location);
+      // console.log("location", location);
+      // console.log("parsedLocation label", parsedLocation.data.data[0].label);
+      // console.log(
+      //   "parsedLocation country",
+      //   parsedLocation.data.data[0].country
+      // );
+      // console.log(
+      //   "parsedLocation neighbourhood",
+      //   parsedLocation.data.data[0].neighbourhood
+      // );
+      // console.log(
+      //   "parsedLocation locality",
+      //   parsedLocation.data.data[0].locality
+      // );
+      // console.log("parsedLocation region", parsedLocation.data.data[0].region);
+      console.log(
+        "parsedLocation region_code",
+        parsedLocation.data.data[0].region_code
+      );
+      if (parsedLocation?.data?.data[0]?.region_code) {
+        setMyUf(parsedLocation.data.data[0].region_code);
+      }
+    })();
   }, []);
 
   async function openNew(url: string) {
