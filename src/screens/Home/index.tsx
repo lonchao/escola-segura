@@ -1,18 +1,19 @@
-import React from "react";
-import { View, Text } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View } from "react-native";
 
 import NewsList from "../../components/NewsList";
 import Header from "../../components/Header";
-import AlertForm from "../../components/AlertForm";
-import PanicButton from "../../components/PanicButton";
+
 import Footer from "../../components/Footer";
+
+import AuthValidator from "../../components/AuthValidator";
 export default function Home() {
   return (
     <View>
       <Header />
       <NewsList />
-      <AlertForm />
-      <PanicButton />
+      <AuthValidator />
+
       <Footer />
     </View>
   );

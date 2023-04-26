@@ -4,13 +4,12 @@ const { width: SCREEN_WIDTH } = Dimensions.get("screen");
 const STATUS_BAR_HEIGHT = Platform.OS === "ios" ? 20 : 0;
 
 export const Container = styled.View`
-  height: ${STATUS_BAR_HEIGHT + 34}px;
+  height: ${STATUS_BAR_HEIGHT}px;
   width: ${SCREEN_WIDTH}px;
   display: flex;
 
-  background: #fff;
-  border-bottom-width: 1px;
-  border-bottom-color: #ccc;
+  background: #eeeeee;
+
   flex-direction: row;
   justify-content: center;
   align-items: flex-end;
